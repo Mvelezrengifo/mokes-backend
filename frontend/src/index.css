@@ -1,0 +1,12 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  --bg: #f0f2f5;
+  --card: #fff;
+  --accent: #0d6efd;
+  --text: #111;
+}
+
+/* ... resto de tu CSS personalizado */

@@ -1,0 +1,80 @@
+/* ===========================
+   PALETA DE COLORES PRINCIPAL
+   =========================== */
+:root {
+  --spa-light: #E6F5E6;       /* Fondo claro */
+  --spa-green: #34A853;       /* Botones verdes / iconos */
+  --spa-blue: #1B4F8C;        /* Azul oscuro (navbars) */
+  --spa-blue-light: #2F6CC0;  /* Azul claro para títulos */
+  --spa-white: #ffffff;
+  --spa-text: #333333;        /* Texto principal */
+}
+
+/* ===========================
+   ESTILOS GENERALES
+   =========================== */
+body {
+  background-color: var(--spa-light);
+  color: var(--spa-text);
+  margin: 0;
+  padding: 0;
+  font-family: Arial, Helvetica, sans-serif;
+}
+
+/* ===========================
+   NAVBAR / HEADER
+   =========================== */
+header, .navbar {
+  background-color: var(--spa-blue);
+  color: var(--spa-white);
+  padding: 10px 20px;
+}
+
+/* ===========================
+   BOTONES
+   =========================== */
+
+/* Botón principal (verde) */
+.btn-primary {
+  background-color: var(--spa-green);
+  color: var(--spa-white);
+  padding: 10px 15px;
+  border-radius: 5px;
+  border: none;
+  cursor: pointer;
+}
+
+/* Botón secundario (azul claro) */
+.btn-secondary {
+  background-color: var(--spa-blue-light);
+  color: var(--spa-white);
+  padding: 10px 15px;
+  border-radius: 5px;
+  border: none;
+  cursor: pointer;
+}
+
+/* Hover suavito */
+.btn-primary:hover,
+.btn-secondary:hover {
+  opacity: 0.9;
+}
+
+/* ===========================
+   TARJETAS / SECCIONES
+   =========================== */
+.card {
+  background-color: var(--spa-white);
+  padding: 15px;
+  border-radius: 8px;
+  box-shadow: 0px 2px 4px rgba(0, 0, 0, 0.08);
+  margin-bottom: 20px;
+}
+
+/* ===========================
+   TÍTULOS
+   =========================== */
+h1, h2, h3 {
+  color: var(--spa-blue-light);
+  margin-top: 0;
+}
