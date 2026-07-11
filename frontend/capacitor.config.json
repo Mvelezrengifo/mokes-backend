@@ -1,8 +1,20 @@
 {
-  "appId": "com.mokes.clinic",
-  "appName": "Mokes Clinic",
+  "appId": "com.mokesclinic.aura",
+  "appName": "Mokes Clinic Aura",
   "webDir": "dist",
+  "bundledWebRuntime": false,
   "server": {
-    "androidScheme": "https"
+    "url": "http://192.168.1.100:5175", // Cambiar por IP local o producción
+    "cleartext": true
+  },
+  "plugins": {
+    "SpeechRecognition": {
+      "androidPermissions": ["android.permission.RECORD_AUDIO"]
+    },
+    "TextToSpeech": {
+      "pitch": 1.0,
+      "rate": 0.9,
+      "language": "es-ES"
+    }
   }
 }

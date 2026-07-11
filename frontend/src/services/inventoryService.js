@@ -1,4 +1,4 @@
-const API_URL_BASE = import.meta.env.VITE_API_URL || "http://localhost:3001";
+const API_URL_BASE = import.meta.env.VITE_API_URL || "http://localhost:5175";
 const API_URL = `${API_URL_BASE}/inventory`;
 
 export async function getProducts() {

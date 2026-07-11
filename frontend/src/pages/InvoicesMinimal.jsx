@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from "react";
-const API_URL = import.meta.env.VITE_API_URL || "http://localhost:3001";
+const API_URL = import.meta.env.VITE_API_URL || "http://localhost:5175";
 
 export default function InvoicesMinimal() {
 const [invoices, setInvoices] = useState([]);
@@ -15,7 +15,7 @@ try {
 const res = await fetch(`${API_URL}/invoices`);
 const data = await res.json();
 console.log("DATA BACKEND:", data);
-setInvoices(Array.isArray(data.facturas) ? data.facturas : []);
+setInvoices(Array.isArray(data.invoices) ? data.invoices : []);
 } catch (err) {
 console.error("Error fetch invoices:", err);
 setInvoices([]);
@@ -45,11 +45,11 @@ return (
 ) : invoices.length === 0 ? ( <p>No hay facturas disponibles</p>
 ) : ( <table border="1" cellPadding="5"> <thead> <tr> <th>ID</th> <th>Paciente</th> <th>Artículos</th> <th>Fecha</th> <th>Total</th> <th>Acciones</th> </tr> </thead> <tbody>
 {invoices.map((inv) => {
-const items = parseItems(inv.artículos);
-return ( <tr key={inv.id}> <td>{inv.id}</td> <td>{inv.nombre_paciente || "Sin nombre"}</td> <td>
+const items = parseItems(inv.items);
+return ( <tr key={inv.id}> <td>{inv.id}</td> <td>{inv.patient_name || "Sin nombre"}</td> <td>
 {items.length > 0
-? items.map((i, idx) => `${i.nombre} (${i.cantidad})`).join(", ")
-: "Sin items"} </td> <td>{inv.fecha}</td> <td>${inv.total}</td> <td>
+? items.map((i, idx) => `${i.name || i.nombre || 'item'} (${i.quantity || i.cantidad || 1})`).join(", ")
+: "Sin items"} </td> <td>{inv.date}</td> <td>${Number(inv.total ?? inv.amount ?? 0).toFixed(2)}</td> <td>
 <button onClick={() => handleDownloadPDF(inv.id)}>PDF</button> </td> </tr>
 );
 })} </tbody> </table>

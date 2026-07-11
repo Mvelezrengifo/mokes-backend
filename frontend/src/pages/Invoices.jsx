@@ -1,149 +1,121 @@
 import React, { useEffect, useState } from "react";
-import { getInvoices } from "../services/invoicesService";
+import { getInvoices, deleteInvoice } from "../services/invoicesService";
 import jsPDF from "jspdf";
 
 export default function Invoices() {
-const [invoices, setInvoices] = useState([]);
-const [loading, setLoading] = useState(true);
+    const [invoices, setInvoices] = useState([]);
+    const [loading, setLoading] = useState(true);
 
-useEffect(() => {
-  fetchInvoices();
-}, []);
+    useEffect(() => { fetchInvoices(); }, []);
 
-const fetchInvoices = async () => {
-  setLoading(true);
-  try {
-    const data = await getInvoices();
-    setInvoices(Array.isArray(data) ? data : []);
-  } catch (err) {
-    console.error("Error fetch invoices:", err);
-    setInvoices([]);
-  } finally {
-    setLoading(false);
-  }
+    const fetchInvoices = async () => {
+        setLoading(true);
+        try {
+            const data = await getInvoices();
+            // Si data es un array directo lo usa, si no, busca la propiedad .invoices
+            const listaLimpia = Array.isArray(data) ? data : (data?.invoices || []);
+            setInvoices(listaLimpia);
+        } catch (err) {
+            console.error("Error cargando facturas:", err);
+            setInvoices([]);
+        } finally {
+            setLoading(false);
+        }
+    };
+
+    const toMoney = (n) => {
+        const num = Number(n);
+        return isNaN(num) ? "0.00" : num.toLocaleString('es-CO', { minimumFractionDigits: 2 });
+    };
+
+    // ✅ ESTA FUNCIÓN ES LA QUE ESTABA FALLANDO: Ahora es "Dura"
+    const handleDownloadPDF = (inv) => {
+    // 1. Extraemos los datos con valores por defecto reales
+    const id = inv.id || "000";
+    const fecha = inv.date || new Date().toLocaleDateString();
+    const nombre = inv.patient_name || "Consumidor Final";
+    const docum = inv.patient_document || "No registra";
+
+    // Forzamos que el total sea un número, si falla ponemos 0
+    const totalRaw = inv.total !== undefined ? inv.total : 0;
+    const totalNum = Number(totalRaw);
+
+    const desc = inv.description || "Servicio Médico/Estético";
+
+    const doc = new jsPDF({ orientation: "portrait", unit: "mm", format: "a4" });
+
+    // --- DISEÑO ---
+    doc.setTextColor(30, 58, 138);
+    doc.setFontSize(22);
+    doc.text("MokesClinic & Spa", 15, 20);
+
+    doc.setFontSize(10);
+    doc.setTextColor(100);
+    doc.text("Excelencia en Salud y Bienestar", 15, 26);
+
+    doc.setTextColor(0);
+    doc.setFontSize(11);
+    doc.text(`Factura N°: ${id}`, 15, 40);
+    doc.text(`Fecha: ${fecha}`, 140, 40);
+    doc.text(`Paciente: ${nombre}`, 15, 48);
+    doc.text(`Documento: ${docum}`, 15, 56);
+
+    // Tabla
+    doc.setFillColor(30, 58, 138);
+    doc.rect(15, 65, 180, 8, "F");
+    doc.setTextColor(255);
+    doc.text("Descripción", 20, 70);
+    doc.text("Total", 170, 70, { align: "right" });
+
+    doc.setTextColor(0);
+    doc.text(desc, 20, 80);
+
+    // Aquí usamos toMoney que ya tienes, pero sobre totalNum
+    doc.text(`$${toMoney(totalNum)}`, 170, 80, { align: "right" });
+
+    doc.line(15, 85, 195, 85);
+    doc.setFont("helvetica", "bold");
+    doc.text(`TOTAL A PAGAR: $${toMoney(totalNum)}`, 170, 95, { align: "right" });
+
+    doc.save(`Factura_Mokes_${id}.pdf`);
 };
 
-const parseItems = (items) => {
-  if (!items) return [];
-  try {
-    const parsedOnce = typeof items === "string" ? JSON.parse(items) : items;
-    const parsedTwice = parsedOnce && typeof parsedOnce === "string" ? JSON.parse(parsedOnce) : parsedOnce;
-    return Array.isArray(parsedTwice) ? parsedTwice : [];
-  } catch {
-    return [];
-  }
-};
+    const handleDelete = async (id) => {
+        if (!confirm("¿Eliminar factura?")) return;
+        const ok = await deleteInvoice(id);
+        if (ok) fetchInvoices();
+    };
 
-const toMoney = (n) => (Number(n || 0)).toFixed(2);
-const safeName = (s) => (s || "Paciente").replace(/\s+/g, "_").replace(/[^\w_]/g, "");
-
-const fetchLogoDataURL = async () => {
-  try {
-    const res = await fetch("/logo.png");
-    const blob = await res.blob();
-    return await new Promise((resolve, reject) => {
-      const reader = new FileReader();
-      reader.onload = () => resolve(reader.result);
-      reader.onerror = reject;
-      reader.readAsDataURL(blob);
-    });
-  } catch {
-    return null;
-  }
-};
-
-const handleDownloadPDF = async (inv) => {
-  const doc = new jsPDF({ orientation: "portrait", unit: "mm", format: "a4" });
-  const logo = await fetchLogoDataURL();
-  if (logo) doc.addImage(logo, "PNG", 15, 10, 22, 22);
-
-  doc.setFont("helvetica", "bold");
-  doc.setFontSize(18);
-  doc.text("The One Medical Spa", 42, 18);
-  doc.setFontSize(11);
-  doc.setFont("helvetica", "normal");
-  doc.text(`Factura #${inv.id}`, 15, 40);
-  doc.text(`Paciente: ${inv.patient_name || "Desconocido"}`, 15, 47);
-  doc.text(`Fecha: ${inv.date}`, 15, 54);
-
-  const items = parseItems(inv.items);
-  const headerY = 70;
-  doc.setFillColor(245, 245, 245);
-  doc.rect(15, headerY, 180, 8, "F");
-  doc.setFont("helvetica", "bold");
-  doc.text("Artículo", 18, headerY + 6);
-  doc.text("Cantidad", 120, headerY + 6);
-  doc.text("Precio", 145, headerY + 6);
-  doc.text("Subtotal", 170, headerY + 6);
-  doc.setFont("helvetica", "normal");
-
-  let y = headerY + 14;
-  items.forEach((i) => {
-    const qty = Number(i.quantity) || 0;
-    const price = Number(i.price) || 0;
-    const subtotal = qty * price;
-    doc.text(String(i.name || "-"), 18, y);
-    doc.text(String(qty), 120, y);
-    doc.text(`$${toMoney(price)}`, 145, y);
-    doc.text(`$${toMoney(subtotal)}`, 170, y);
-    y += 8;
-    if (y > 270) {
-      doc.addPage();
-      y = 20;
-    }
-  });
-
-  const total = Number(inv.total) || items.reduce((acc, i) => acc + (Number(i.quantity) || 0) * (Number(i.price) || 0), 0);
-  const totalY = Math.min(y + 10, 280);
-  doc.setFont("helvetica", "bold");
-  doc.text(`Total: $${toMoney(total)}`, 170, totalY, { align: "right" });
-
-  const fileName = `${safeName(inv.patient_name)}_factura_${inv.id}.pdf`;
-  doc.save(fileName);
-};
-
-return (
-  <div className="content">
-    <h2>Facturas</h2>
-    {loading ? (
-      <p>Cargando facturas...</p>
-    ) : invoices.length === 0 ? (
-      <p>No hay facturas disponibles</p>
-    ) : (
-      <table border="1" cellPadding="5">
-        <thead>
-          <tr>
-            <th>ID</th>
-            <th>Paciente</th>
-            <th>Artículos</th>
-            <th>Fecha</th>
-            <th>Total</th>
-            <th>Acciones</th>
-          </tr>
-        </thead>
-        <tbody>
-          {invoices.map((inv) => {
-            const items = parseItems(inv.items);
-            return (
-              <tr key={inv.id}>
-                <td>{inv.id}</td>
-                <td>{inv.patient_name || "Sin nombre"}</td>
-                <td>
-                  {items.length > 0
-                    ? items.map((i) => `${i.name} (${i.quantity})`).join(", ")
-                    : "Sin items"}
-                </td>
-                <td>{inv.date}</td>
-                <td>${inv.total}</td>
-                <td>
-                  <button onClick={() => handleDownloadPDF(inv)}>PDF</button>
-                </td>
-              </tr>
-            );
-          })}
-        </tbody>
-      </table>
-    )}
-  </div>
-);
+    return (
+        <div style={{ padding: "30px", backgroundColor: "#f8fafc", minHeight: "100vh" }}>
+            <h2 style={{ color: "#1e3a8a", borderBottom: "2px solid #1e3a8a" }}>Historial de Facturación</h2>
+            {loading ? <p>Cargando datos...</p> : (
+                <table style={{ width: "100%", borderCollapse: "collapse", marginTop: "20px", backgroundColor: "white" }}>
+                    <thead>
+                        <tr style={{ backgroundColor: "#1e3a8a", color: "white" }}>
+                            <th style={{ padding: "12px" }}>ID</th>
+                            <th>Paciente</th>
+                            <th>Fecha</th>
+                            <th>Total</th>
+                            <th>Acciones</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {invoices.map((inv) => (
+                            <tr key={inv.id} style={{ borderBottom: "1px solid #eee", textAlign: "center" }}>
+                                <td style={{ padding: "12px" }}>{inv.id}</td>
+                                <td>{inv.patient_name || "N/A"}</td>
+                                <td>{inv.date}</td>
+                                <td>${toMoney(inv.total)}</td>
+                                <td style={{ padding: "10px" }}>
+                                    <button onClick={() => handleDownloadPDF(inv)} style={{ cursor: "pointer" }}>📄 PDF</button>
+                                    <button onClick={() => handleDelete(inv.id)} style={{ color: "red", marginLeft: "10px", cursor: "pointer" }}>🗑️</button>
+                                </td>
+                            </tr>
+                        ))}
+                    </tbody>
+                </table>
+            )}
+        </div>
+    );
 }

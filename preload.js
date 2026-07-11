@@ -1,0 +1,1 @@
+// Preload script - Frontend se comunica con servidor web

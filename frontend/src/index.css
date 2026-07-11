@@ -1,7 +1,6 @@
-@tailwind base;
-@tailwind components;
-@tailwind utilities;
+@import "tailwindcss";
 
+/* Variables globales si las necesitas */
 :root {
   --bg: #f0f2f5;
   --card: #fff;
@@ -9,4 +8,4 @@
   --text: #111;
 }
 
-/* ... resto de tu CSS personalizado */
+/* Clases personalizadas opcionales */

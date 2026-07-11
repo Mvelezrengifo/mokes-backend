@@ -1,95 +1,57 @@
-// frontend/src/components/MainLayout.jsx
-import React, { useState } from "react";
+﻿import React, { useState } from "react";
+import { Outlet } from "react-router-dom";
 import Header from "./Header";
-import Patients from "../pages/Patients";
-import Appointments from "../pages/Appointments";
+import AuraWidget from './AuraWidget';  // ✅ Importación al inicio
 
 export default function MainLayout() {
-  const [activeTab, setActiveTab] = useState("patients"); // "patients" o "appointments"
-  const [patients, setPatients] = useState([]);
+    const [sidebarOpen, setSidebarOpen] = useState(true);
 
-  const handlePatientsChange = (newPatients) => {
-    setPatients(newPatients);
-  };
+    const toggleSidebar = () => {
+        setSidebarOpen(!sidebarOpen);
+    };
 
-  return (
-    <div style={styles.container}>
-      {/* Cabecera */}
-      <Header />
+    return (
+        <div style={styles.page}>
+            <Header toggleSidebar={toggleSidebar} />
 
-      {/* Tabs */}
-      <div style={styles.tabContainer}>
-        <button
-          style={activeTab === "patients" ? styles.activeTab : styles.tab}
-          onClick={() => setActiveTab("patients")}
-        >
-          Pacientes
-        </button>
-        <button
-          style={activeTab === "appointments" ? styles.activeTab : styles.tab}
-          onClick={() => setActiveTab("appointments")}
-        >
-          Citas
-        </button>
-      </div>
+            <div style={styles.wrapper}>
+                <main style={styles.mainContent}>
+                    <Outlet />
+                </main>
+            </div>
 
-      {/* Contenido en cuadros */}
-      <div style={styles.content}>
-        {activeTab === "patients" && (
-          <div style={styles.card}>
-            <h2>Pacientes</h2>
-            <Patients onPatientsChange={handlePatientsChange} />
-          </div>
-        )}
+            <footer style={styles.footer}>
+                Diseñado por <strong>MokeSoft</strong>
+            </footer>
 
-        {activeTab === "appointments" && (
-          <div style={styles.card}>
-            <h2>Citas</h2>
-            <Appointments patients={patients} />
-          </div>
-        )}
-      </div>
-    </div>
-  );
+            <AuraWidget />  {/* ✅ Componente dentro del JSX */}
+        </div>
+    );
 }
 
 const styles = {
-  container: {
-    maxWidth: "1000px",
-    margin: "0 auto",
-    padding: "20px",
-    fontFamily: "Arial, sans-serif",
-  },
-  tabContainer: {
-    display: "flex",
-    justifyContent: "center",
-    margin: "20px 0",
-  },
-  tab: {
-    padding: "10px 20px",
-    margin: "0 5px",
-    cursor: "pointer",
-    backgroundColor: "#eee",
-    border: "1px solid #ccc",
-    borderRadius: "5px",
-  },
-  activeTab: {
-    padding: "10px 20px",
-    margin: "0 5px",
-    cursor: "pointer",
-    backgroundColor: "#ddd",
-    border: "2px solid #888",
-    borderRadius: "5px",
-    fontWeight: "bold",
-  },
-  content: {
-    marginTop: "20px",
-  },
-  card: {
-    padding: "20px",
-    border: "1px solid #ccc",
-    borderRadius: "8px",
-    backgroundColor: "#fafafa",
-    boxShadow: "1px 1px 5px rgba(0,0,0,0.1)",
-  },
+    page: {
+        display: "flex",
+        flexDirection: "column",
+        minHeight: "100vh",
+        fontFamily: "Arial, sans-serif",
+        backgroundColor: "#e6f0fa",
+    },
+    wrapper: {
+        display: "flex",
+        flex: 1,
+    },
+    mainContent: {
+        flex: 1,
+        padding: 20,
+        backgroundColor: "#f4f6f8",
+    },
+    footer: {
+        textAlign: "center",
+        padding: "10px",
+        fontSize: "12px",
+        color: "#666",
+        borderTop: "1px solid #ddd",
+        backgroundColor: "#fff",
+    },
 };
